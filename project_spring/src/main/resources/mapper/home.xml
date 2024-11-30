@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.home.model.mapper.HomeMapper">
+
+    <!-- 아파트 매매 -->
+    <resultMap id="AptsBuyResultMap"
+        type="com.ssafy.home.model.buyDto.AptsBuyDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="aptNm" column="apt_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="dealAmount" column="deal_amount" />
+        <result property="floor" column="floor" />
+        <result property="buildYear" column="build_year" />
+        <result property="rgstDate" column="rgst_date" />
+        <result property="aptDong" column="apt_dong" />
+    </resultMap>
+
+    <!-- 아파트 전/월세 -->
+    <resultMap id="AptsRentResultMap"
+        type="com.ssafy.home.model.rentDto.AptsRentDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="aptNm" column="apt_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="deposit" column="deposit" />
+        <result property="monthlyRent" column="monthly_rent" />
+        <result property="floor" column="floor" />
+        <result property="buildYear" column="build_year" />
+    </resultMap>
+
+    <!-- 오피스텔 매매 -->
+    <resultMap id="OfficetelsBuyResultMap"
+        type="com.ssafy.home.model.buyDto.OfficetelsBuyDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="sggNm" column="sgg_nm" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="offiName" column="offi_name" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="dealAmount" column="deal_amount" />
+        <result property="floor" column="floor" />
+        <result property="buildYear" column="build_year" />
+    </resultMap>
+
+    <!-- 오피스텔 전/월세 -->
+    <resultMap id="OfficetelsRentResultMap"
+        type="com.ssafy.home.model.rentDto.OfficetelsRentDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="sggNm" column="sgg_nm" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="offiName" column="offi_name" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="deposit" column="deposit" />
+        <result property="monthlyRent" column="monthly_rent" />
+        <result property="floor" column="floor" />
+        <result property="buildYear" column="build_year" />
+    </resultMap>
+
+    <!-- 빌라 매매 -->
+    <resultMap id="VillaBuyResultMap"
+        type="com.ssafy.home.model.buyDto.VillaBuyDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="mhouseNm" column="mhouse_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="buildYear" column="build_year" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="landAr" column="land_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="dealAmount" column="deal_amount" />
+        <result property="floor" column="floor" />
+        <result property="rgstDate" column="rgst_date" />
+    </resultMap>
+
+    <!-- 빌라 전/월세 -->
+    <resultMap id="VillaRentResultMap"
+        type="com.ssafy.home.model.rentDto.VillaRentDto">
+        <result property="sggCd" column="sgg_cd" />
+        <result property="umdNm" column="umd_nm" />
+        <result property="mhouseNm" column="mhouse_nm" />
+        <result property="jibun" column="jibun" />
+        <result property="buildYear" column="build_year" />
+        <result property="excluUseAr" column="exclu_use_ar" />
+        <result property="dealYear" column="deal_year" />
+        <result property="dealMonth" column="deal_month" />
+        <result property="dealDay" column="deal_day" />
+        <result property="deposit" column="deposit" />
+        <result property="monthlyRent" column="monthly_rent" />
+        <result property="floor" column="floor" />
+    </resultMap>
+
+
+    <select id="findAptsBuy" parameterType="map" resultMap="AptsBuyResultMap">
+        SELECT *
+        FROM apts_buy
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="price != null and price[0] != null and price[1] != null">
+            AND CAST(deal_amount AS SIGNED) &gt;= #{price[0]} 
+            AND CAST(deal_amount AS SIGNED) &lt;= #{price[1]}
+        </if>
+    </select>
+    
+    <select id="findAptsRent" parameterType="map" resultMap="AptsRentResultMap">
+        SELECT *
+        FROM apts_rent
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="deposit != null and deposit[0] != null and deposit[1] != null">
+            AND CAST(deposit AS SIGNED) &gt;= #{deposit[0]} 
+            AND CAST(deposit AS SIGNED) &lt;= #{deposit[1]}
+        </if>
+        <if test="monthlyRent != null and monthlyRent[0] != null and monthlyRent[1] != null">
+            <if test="monthlyRent[0] != 0">
+                AND CAST(monthly_rent AS SIGNED) &gt;= #{monthlyRent[0]} 
+            </if>
+            <if test="monthlyRent[0] == 0">
+                AND CAST(monthly_rent AS SIGNED) &gt; #{monthlyRent[0]} 
+            </if>
+            AND CAST(monthly_rent AS SIGNED) &lt;= #{monthlyRent[1]}
+        </if>
+           <if test="monthlyRent == null">
+            AND CAST(monthly_rent AS SIGNED) = 0
+        </if>
+    </select>
+
+    <select id="findOfficetelsBuy" parameterType="map" resultMap="OfficetelsBuyResultMap">
+        SELECT *
+        FROM officetels_buy
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="price != null and price[0] != null and price[1] != null">
+            AND CAST(deal_amount AS SIGNED) &gt;= #{price[0]} 
+            AND CAST(deal_amount AS SIGNED) &lt;= #{price[1]}
+        </if>
+    </select>
+    
+    <select id="findOfficetelsRent" parameterType="map" resultMap="OfficetelsRentResultMap">
+        SELECT *
+        FROM officetels_rent
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="deposit != null and deposit[0] != null and deposit[1] != null">
+            AND CAST(deposit AS SIGNED) &gt;= #{deposit[0]} 
+            AND CAST(deposit AS SIGNED) &lt;= #{deposit[1]}
+        </if>
+        <if test="monthlyRent != null and monthlyRent[0] != null and monthlyRent[1] != null">
+            <if test="monthlyRent[0] != 0">
+                AND CAST(monthly_rent AS SIGNED) &gt;= #{monthlyRent[0]} 
+            </if>
+            <if test="monthlyRent[0] == 0">
+                AND CAST(monthly_rent AS SIGNED) &gt; #{monthlyRent[0]} 
+            </if>
+            AND CAST(monthly_rent AS SIGNED) &lt;= #{monthlyRent[1]}
+        </if>
+           <if test="monthlyRent == null">
+            AND CAST(monthly_rent AS SIGNED) = 0
+        </if>
+    </select>
+    
+    <select id="findVillaBuy" parameterType="map" resultMap="VillaBuyResultMap">
+        SELECT *
+        FROM villa_buy
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="price != null and price[0] != null and price[1] != null">
+            AND CAST(deal_amount AS SIGNED) &gt;= #{price[0]} 
+            AND CAST(deal_amount AS SIGNED) &lt;= #{price[1]}
+        </if>
+    </select>
+    
+    <select id="findVillaRent" parameterType="map" resultMap="VillaRentResultMap">
+        SELECT *
+        FROM villa_rent
+        WHERE 1=1
+        <if test="addresses != null and addresses.size > 0">
+            AND (
+                <foreach collection="addresses" item="address" separator="OR">
+                    umd_nm = #{address.umdNm}
+                </foreach>
+            )
+        </if>
+        <if test="area != null and area[0] != null and area[1] != null">
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &gt;= #{area[0]} 
+            AND CAST(exclu_use_ar AS DECIMAL(10,2)) &lt;= #{area[1]}
+        </if>
+        <if test="deposit != null and deposit[0] != null and deposit[1] != null">
+            AND CAST(deposit AS SIGNED) &gt;= #{deposit[0]} 
+            AND CAST(deposit AS SIGNED) &lt;= #{deposit[1]}
+        </if>
+        <if test="monthlyRent != null and monthlyRent[0] != null and monthlyRent[1] != null">
+            <if test="monthlyRent[0] != 0">
+                AND CAST(monthly_rent AS SIGNED) &gt;= #{monthlyRent[0]} 
+            </if>
+            <if test="monthlyRent[0] == 0">
+                AND CAST(monthly_rent AS SIGNED) &gt; #{monthlyRent[0]} 
+            </if>
+            AND CAST(monthly_rent AS SIGNED) &lt;= #{monthlyRent[1]}
+        </if>
+           <if test="monthlyRent == null">
+            AND CAST(monthly_rent AS SIGNED) = 0
+        </if>
+    </select>
+
+
+    <!-- 시/도 목록 -->
+    <select id="findSido" resultType="map">
+        SELECT DISTINCT sido_name AS sidoName
+        FROM dongcodes
+        ORDER BY sido_name ASC
+    </select>
+
+    <!-- 구/군 목록 -->
+    <select id="findGugun" parameterType="string" resultType="map">
+        SELECT DISTINCT gugun_name AS gugunName
+        FROM dongcodes
+        WHERE sido_name = #{sido} AND gugun_name IS NOT NULL
+        ORDER BY gugun_name ASC
+    </select>
+
+    <!-- 동 목록 -->
+    <select id="findDong" parameterType="map" resultType="map">
+        SELECT dong_name AS dongName
+        FROM dongcodes
+        WHERE sido_name = #{sido} AND gugun_name = #{gugun} AND dong_name IS NOT NULL
+        ORDER BY dong_name ASC
+    </select>
+    
+    <!-- 동을 기반으로 시/도, 구/군 정보 가져오기 -->
+    <select id="findLocationByCodeAndDong" parameterType="string" resultType="map">
+        SELECT sido_name AS sidoName, gugun_name AS gugunName
+        FROM dongcodes
+        WHERE LEFT(dong_code, 5) = #{code} AND dong_name = #{dongName}
+    </select>
+
+<select id="getCountByRegion" parameterType="map" resultType="int">
+    <choose>
+        <when test="table == 'hospital'">
+            SELECT COUNT(*) FROM hospital WHERE 구 = #{region}
+        </when>
+        <when test="table == 'restaurants'">
+            SELECT COUNT(*) FROM restaurants WHERE 구 = #{region}
+        </when>
+        <when test="table == 'play'">
+            SELECT COUNT(*) FROM play WHERE 구 = #{region}
+        </when>
+        <when test="table == 'exercise'">
+            SELECT COUNT(*) FROM exercise WHERE 구 = #{region}
+        </when>
+        <when test="table == 'pharmacies'">
+            SELECT COUNT(*) FROM pharmacies WHERE 구 = #{region}
+        </when>
+        <otherwise>
+            SELECT 0
+        </otherwise>
+    </choose>
+</select>
+</mapper>

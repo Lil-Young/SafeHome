@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.board.model.mapper.BoardMapper">
+
+	<resultMap type="boardDto" id="article">
+		<result column="article_no" property="articleNo" />
+		<result column="user_id" property="userId" />
+		<result column="user_name" property="userName" />
+		<result column="subject" property="subject" />
+		<result column="content" property="content" />
+		<result column="hit" property="hit" />
+		<result column="type" property="type"/>
+		<result column="register_time" property="registerTime" />
+	</resultMap>
+
+
+	<resultMap id="boardResultMap" type="BoardDetailDto">
+		<id property="articleNo" column="article_no" />
+		<result property="boardUserId" column="board_user_id" />
+		<result property="boardSubject" column="board_subject" />
+		<result property="content" column="board_content" />
+		<result property="hit" column="hit" />
+		<result property="boardRegisterTime"
+			column="board_register_time" />
+
+		<!-- 부모 댓글들을 collection으로 매핑 -->
+		<collection property="comments" javaType="java.util.List"
+			ofType="ReplyDto">
+			<id property="commentId" column="comment_id" />
+			<result property="commentUserId" column="comment_user_id" />
+			<result property="commentContent" column="comment_content" />
+			<result property="commentRegisterTime"
+				column="comment_register_time" />
+
+			<!-- 자식 댓글을 collection으로 매핑 -->
+			<collection property="childComments"
+				javaType="java.util.List" ofType="ReplyDto">
+				<id property="commentId" column="child_comment_id" />
+				<result property="commentUserId" column="child_user_id" />
+				<result property="commentContent" column="child_content" />
+				<result property="commentRegisterTime"
+					column="child_register_time" />
+			</collection>
+		</collection>
+	</resultMap>
+
+
+	<insert id="writeArticle" parameterType="boardDto"> insert into board
+		(user_id, subject, content, hit, register_time) values (#{userId},
+		#{subject}, #{content}, 0, now()) <selectKey resultType="int"
+			keyProperty="articleNo"
+			order="AFTER">
+			select last_insert_id()
+		</selectKey>
+	</insert>
+
+
+	<sql id="search">
+		<if test="word != null and word != ''">
+			<if test="key == 'subject'">
+				and subject like concat('%', #{word}, '%')
+			</if>
+			<if test="key != 'subject'">
+				and ${key} = #{word}
+			</if>
+		</if>
+	</sql>
+
+	<select id="listArticle" parameterType="map" resultMap="article"> select
+		b.article_no, b.user_id, b.subject, b.content, b.hit, b.register_time,
+		m.user_name , m.type from board b, members m where b.user_id = m.user_id <include
+			refid="search"></include> order by b.article_no desc limit #{start},
+		#{listsize} </select>
+
+	<select id="getTotalArticleCount" parameterType="map"
+		resultType="int"> select count(article_no) from board <where>
+			<include refid="search"></include>
+		</where>
+	</select>
+
+
+	<select id="getModifyData" parameterType="int" resultMap="article">
+		select * from board where article_no = #{articleNo}
+	</select>
+
+
+	<!-- <select id="getArticle" parameterType="int" resultMap="article"> select 
+		b.article_no, b.user_id, b.subject, b.content, b.hit, b.register_time,
+	m.user_name 
+		from board b, members m where b.user_id = m.user_id and b.article_no =
+	#{articleNo} 
+		</select> -->
+
+	<select id="getArticle" resultMap="boardResultMap"
+		parameterType="int">
+		SELECT
+		result.article_no,
+		result.board_user_id,
+		result.board_subject,
+		result.board_content,
+		result.hit,
+		result.board_register_time,
+		result.comment_id,
+		result.comment_user_id,
+		result.comment_content,
+		result.comment_register_time,
+		c2.comment_id AS child_comment_id,
+		c2.user_id AS child_user_id,
+		c2.content AS child_content,
+		c2.register_time AS child_register_time
+		FROM
+		(SELECT
+		b.article_no,
+		b.user_id AS board_user_id,
+		b.subject AS board_subject,
+		b.content AS board_content,
+		b.hit,
+		b.register_time AS board_register_time,
+		c.comment_id,
+		c.user_id AS
+		comment_user_id,
+		c.content AS comment_content,
+		c.register_time AS
+		comment_register_time
+		FROM
+		board AS b
+		LEFT JOIN
+		comment AS c
+		ON
+		b.article_no = c.article_no
+		WHERE
+		b.article_no = #{articleNo}
+		AND
+		c.parent_id IS NULL
+		) AS result
+		LEFT JOIN
+		comment AS c2
+		ON
+		result.comment_id = c2.parent_id;
+	</select>
+
+
+	<update id="updateHit" parameterType="int">
+		update board
+		set hit = hit +
+		1
+		where article_no = #{articleNo}
+	</update>
+
+	<update id="modifyArticle" parameterType="boardDto">
+		update board
+		set subject
+		= #{subject}, content = #{content}
+		where article_no = #{articleNo}
+	</update>
+
+	<delete id="deleteArticle" parameterType="int">
+		delete from board
+		where
+		article_no = #{articleNo}
+	</delete>
+
+	<select id="searchAuthor" parameterType="String" resultMap="article">
+		select b.article_no
+				,b.user_id
+				,b.subject
+				,b.content
+				,b.hit
+				,b.register_time
+				,m.user_name
+				,m.type
+		from board as b
+		left join members as m
+			using(user_id)
+		where
+			m.user_name like concat('%' , #{term} , '%');
+	</select>
+
+	<select id="searchTitle" parameterType="String" resultMap="article">
+		select b.article_no
+				,b.user_id
+				,b.subject
+				,b.content
+				,b.hit
+				,b.register_time
+				,m.user_name
+				,m.type
+		from board as b
+		left join members as m
+			using(user_id)
+		where
+			b.subject like concat('%' , #{term} , '%');
+	</select>
+
+	<select id="searchAll" parameterType="String" resultMap="article">
+		select b.article_no
+				,b.user_id
+				,b.subject
+				,b.content
+				,b.hit
+				,b.register_time
+				,m.user_name
+				,m.type
+		from board as b
+		left join members as m
+			using(user_id)
+		where
+			m.user_name like concat('%' , #{term} , '%') or b.subject like concat('%' , #{term} , '%');
+	</select>
+</mapper>

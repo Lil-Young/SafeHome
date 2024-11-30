@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.member.model.mapper.MemberMapper">
+	<resultMap type="memberDto" id="member">
+		<result column="user_id" property="userId"/>
+		<result column="user_name" property="userName"/>
+		<result column="user_password" property="userPwd"/>
+		<result column="email_id" property="emailId"/>
+		<result column="email_domain" property="emailDomain"/>
+		<result column="join_date" property="joinDate"/>
+		<result column="token" property="token"/>
+		<result column="home_name" property="homeName"/>
+		<result column="home_address" property="homeAddress"/>
+		<result column="phone" property="phone"/>
+		<result column="type" property="type"/>
+	</resultMap>
+
+	<resultMap type="userInfoDto" id="Info">
+		<result column="user_id" property="userId"/>
+		<result column="user_name" property="userName"/>
+		<result column="email_id" property="emailId"/>
+		<result column="email_domain" property="emailDomain"/>
+		<result column="home_name" property="homeName"/>
+		<result column="home_address" property="homeAddress"/>
+		<result column="phone" property="phone"/>
+		<result column="type" property="type"/>
+	</resultMap>
+	
+
+	<select id="idCheck" parameterType="String" resultType="int">
+		select count(user_id)
+		from members
+		where user_id = #{userId}
+	</select>
+
+	<insert id="joinMember" parameterType="memberDto">
+		insert into members (user_name, 
+							 user_id, 
+							 user_password, 
+							 email_id, 
+							 email_domain, 
+							 <!-- join_date, -->
+							 token,
+							 home_name,
+							 home_address,
+							 phone,
+							 type)
+				values (#{userName}, 
+						#{userId}, 
+						#{userPwd}, 
+						#{emailId}, 
+						#{emailDomain}, 
+						<!-- now(), -->
+						#{token},
+						#{homeName},
+						#{homeAddress},
+						#{phone},
+						#{type})
+	</insert>
+
+	<select id="loginMember" parameterType="map" resultMap="member">
+		select   user_name, 
+				 user_id, 
+				 user_password, 
+				 email_id, 
+				 email_domain, 
+				 <!-- join_date, -->
+				 token,
+				 home_name,
+				 home_address,
+				 phone,
+				 type
+		from members
+		where user_id = #{userId} and user_password = #{userPwd}
+	</select>
+		
+
+	
+	<update id="updateMember" parameterType="MemberDto">
+    	update members
+    	set
+        	user_name = #{userName},
+			email_id = #{emailId}, 
+			email_domain = #{emailDomain},
+			home_name = #{homeName},
+        	home_address = #{homeAddress},
+        	phone = #{phone}
+        <if test="userPwd != null and userPwd != ''">
+            , user_password = #{userPwd}
+        </if>
+    	where 
+        	user_id = #{userId}
+	</update>
+	
+	<select id="findPass" parameterType="memberDto">
+		select user_password 
+		from members 
+		where user_id = #{userId} and user_name = #{userName}
+	</select>
+	
+	<update id="updateRefreshToken">
+		update members
+		set token = #{refreshToken}
+		where user_id = #{userId}
+	</update>
+	
+	<select id="getUserInfo" parameterType="string" resultMap="Info">
+	    SELECT user_id, user_name, email_id, email_domain, type,
+	           CASE WHEN type = 2 THEN home_name ELSE null END AS home_name,
+	           CASE WHEN type = 2 THEN home_address ELSE null END AS home_address,
+	           CASE WHEN type = 2 THEN phone ELSE null END AS phone
+	    FROM members
+	    WHERE user_id = #{userId}
+	</select>
+
+	<delete id="deleteMemberReferences" parameterType="String">
+    DELETE FROM board WHERE user_id = #{userId}
+</delete>
+
+<delete id="deleteMember" parameterType="String">
+    DELETE FROM members WHERE user_id = #{userId}
+</delete>
+	
+	
+</mapper>
